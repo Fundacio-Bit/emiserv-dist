@@ -44,5 +44,5 @@ KEYCLOAK_DB_URL_DATABASE=keycloak
 KEYCLOAK_DB_URL_SCHEMA=keycloak
 KEYCLOAK_DB_USER=keycloak
 KEYCLOAK_DB_PASSWORD=keycloak
-
+KEYCLOAK_PROXY_HEADERS=xforwarded
 # end keycloak section
