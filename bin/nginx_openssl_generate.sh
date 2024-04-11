@@ -94,6 +94,8 @@ mv *.key ${OPENSSL_CERTS_PATH}/
 mv *.pem ${OPENSSL_CERTS_PATH}/
 mv *.csr ${OPENSSL_CERTS_PATH}/
 mv *.crt ${OPENSSL_CERTS_PATH}/
+
+chmod 644 ${OPENSSL_CERTS_PATH}/*
 # mv *.p12 ${OPENSSL_CERTS_PATH}/
 # mv *.cer ${OPENSSL_CERTS_PATH}/
 # mv *.jks ${OPENSSL_CERTS_PATH}/

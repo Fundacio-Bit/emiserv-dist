@@ -18,7 +18,9 @@ services:
      - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
      - KC_HOSTNAME=${KEYCLOAK_HOST_SERVER}
      - KC_HEALTH_ENABLED=${KEYCLOAK_HEALTH_ENABLED}
-     #- KC_PROXY_HEADERS=${KEYCLOAK_PROXY_HEADERS}
+     - KC_HTTPS_CERTIFICATE_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_FILE}
+     - KC_HTTPS_CERTIFICATE_KEY_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE}
+    #  - KC_PROXY_HEADERS=${KEYCLOAK_PROXY_HEADERS}
     ports:
      - ${KEYCLOAK_PORT}:8080
      - ${KEYCLOAK_HTTPS_PORT}:8443
@@ -35,9 +37,9 @@ services:
   #   ports:
   #    - ${KEYCLOAK_PORT}:8180
   #    - ${KEYCLOAK_HTTPS_PORT}:8443
-  #   volumes: 
-  #     - ${DOCKER_PROJECT_PATH}/builds/keycloak-dist/keycloak/conf/import-goib-realm.json:/tmp/import-goib-realm.json
-  #     - ${KEYCLOAK_HTTPS_KEYSTORE_PATH}:/opt/jboss/keycloak/standalone/configuration/keystores
+    volumes: 
+      - ${APP_FILES_BASE_FOLDER}/assets/ssl/${NGINX_SSL_NAMESERVER}.crt:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.crt:ro
+      - ${APP_FILES_BASE_FOLDER}/assets/ssl/${NGINX_SSL_NAMESERVER}.key:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.key:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "https://${KEYCLOAK_SERVER_BASE_URL}/health"]
       interval: 10s
