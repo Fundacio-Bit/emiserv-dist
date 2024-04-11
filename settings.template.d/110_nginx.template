@@ -14,6 +14,9 @@ NGINX_OPENSSL_CONF_FILE=openssl.conf
 NGINX_SSL_NAMECA=proves-fbit
 NGINX_SSL_NAMECLIENT=proves-fbit-client
 NGINX_SSL_NAMESERVER=proves-fbit
-NGINX_SSL_PASS=changeit
-
+NGINX_SSL_PASS=${PROJECT_PATH}/../data/firma/pass
+NGINX_SSL_KEYSTORE=${PROJECT_PATH}/../data/firma/keystore
+NGINX_KEYSTORE_PASS=changeit
+NGINX_SSL_SRC_ALIAS=srcalias
+NGINX_SSL_DST_ALIAS=dstalias
 # end of nginx section
