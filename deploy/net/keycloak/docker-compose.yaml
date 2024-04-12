@@ -38,8 +38,8 @@ services:
   #    - ${KEYCLOAK_PORT}:8180
   #    - ${KEYCLOAK_HTTPS_PORT}:8443
     volumes: 
-      - ${APP_FILES_BASE_FOLDER}/assets/ssl/${NGINX_SSL_NAMESERVER}.crt:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.crt:ro
-      - ${APP_FILES_BASE_FOLDER}/assets/ssl/${NGINX_SSL_NAMESERVER}.key:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.key:ro
+      - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/assets/ssl/${NGINX_SSL_NAMESERVER}.crt:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.crt:ro
+      - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/assets/ssl/${NGINX_SSL_NAMESERVER}.key:/opt/keycloak/conf/${NGINX_SSL_NAMESERVER}.key:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "https://${KEYCLOAK_SERVER_BASE_URL}/health"]
       interval: 10s
