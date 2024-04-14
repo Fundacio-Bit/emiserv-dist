@@ -1,4 +1,8 @@
 embed-server --server-config=${server.config:standalone.xml}
 /system-property=es.caib.pbasetest.properties:add(value=/opt/jboss/webapps/config/pbasetest.properties)
 /system-property=es.caib.pbasetest.system.properties:add(value=/opt/jboss/webapps/config/pbasetest.system.properties)
+/system-property=org.keycloak.https.truststore.file:add(value=truststore.jks)
+/system-property=org.keycloak.https.truststore.pass:add(value=password)
+#/system-property=org.keycloak.https.keystore.alias.name:add(value=alias)
+#/system-property=org.keycloak.https.keystore.alias.pass:add(value=password)
 stop-embedded-server

@@ -108,6 +108,12 @@ COPY ./wildfly/bin/add-system-properties.cli bin
 RUN bin/jboss-cli.sh --file=bin/add-system-properties.cli && \
     rm bin/add-system-properties.cli
 
+ # Log settings
+ COPY ./wildfly/bin/https-add-offline.cli bin
+ RUN bin/jboss-cli.sh --file=bin/https-add-offline.cli && \
+    rm bin/https-add-offline.cli
+
+
 # Project lombok
 # RUN curl -OL https://repo1.maven.org/maven2/org/projectlombok/lombok/${LOMBOK_VERSION}/lombok-${LOMBOK_VERSION}.jar
 # COPY ./wildfly/bin/lombok-install-offline.cli bin
