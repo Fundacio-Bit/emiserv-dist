@@ -87,8 +87,13 @@ openssl x509 -req -CA ${NAMECA}ca.pem -CAkey ${NAMECA}ca.key -in ${NAMESERVER}.c
 # # Extraer la clave privada
 # openssl pkcs12 -in ${NAMESERVER}.p12 -nocerts -nodes -out ${NAMESERVER}.key -passin pass:${PASS}
 
+echo "importing crt and authority to emiserv.jks"
+$KEYTOOL -import -alias ${NAMECA} -file ${NAMECA}ca.pem -keystore emiserv.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -alias ${NAMESERVER} -file ${NAMESERVER}.crt -keystore emiserv.jks -storepass ${PASS} -noprompt
+
 echo "import trustcacerts"
 $KEYTOOL -import -trustcacerts -alias ${NAMECA} -file ${NAMECA}ca.pem -keystore ${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -trustcacerts -alias ${NAMESERVER} -file ${NAMESERVER}.crt -keystore ${NAMECLIENT}trust.jks -storepass ${PASS} -noprompt
 
 mv *.key ${OPENSSL_CERTS_PATH}/
 mv *.pem ${OPENSSL_CERTS_PATH}/
