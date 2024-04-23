@@ -15,12 +15,12 @@
 
 embed-server --server-config=${server.config:standalone.xml}
 
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=truststore-path, value="keystores/app.jks")
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=truststore-relative-to, value="jboss.server.config.dir")
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=truststore-password, value="pass")
-#/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=alias, value="alias")
-#/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=key-password, value="aliaspass")
-#/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:undefine-attribute(name=generate-self-signed-certificate-host)
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=keystore-path, value="pinbal.jks")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=keystore-relative-to, value="jboss.server.config.dir")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=keystore-password, value="pass")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=alias, value="alias")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:write-attribute(name=key-password, value="password")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:undefine-attribute(name=generate-self-signed-certificate-host)
 
 stop-embedded-server
 
