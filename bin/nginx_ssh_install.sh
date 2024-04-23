@@ -33,7 +33,7 @@ if [[ isLinux -eq 1 ]]; then
     sudo apt-get update
     sudo apt-get upgrade
 
-    sudo apt-get install openssh-server openssh-client
+    sudo apt-get install openssl openssh-server openssh-client
     sudo service ssh start
     sudo service ssh enable
     sudo apt-get install net-tools
@@ -43,6 +43,4 @@ else
     echo "ssh should be installed manually"
     echo ""
 fi
-
-
 

@@ -75,4 +75,4 @@ else
     fi
 fi
 
-$KEYTOOL -list -keystore $KEYSTORE
+$KEYTOOL -list -v -keystore $KEYSTORE

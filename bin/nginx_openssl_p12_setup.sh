@@ -45,15 +45,20 @@ KEYTOOL=$(command -v $COMMAND)
 echo "$COMMAND at $KEYTOOL"
 
 echo dname is ${DNAME}
+echo Pass $PASS
+
+# echo "generating server csr"
+$KEYTOOL -certreq -v -alias ${NGINX_SSL_SRC_ALIAS} -keystore ${NGINX_SSL_KEYSTORE} -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.csr
+
 
 # echo "import keystore server"
-$KEYTOOL -importkeystore -srckeystore ${NGINX_SSL_KEYSTORE} -destkeystore ${NAMESERVER}.jks -srcstoretype pkcs12 -deststoretype JKS -srcstorepass ${PASS} -deststorepass ${NGINX_KEYSTORE_PASS} -srcalias ${NGINX_SSL_SRC_ALIAS} -destalias ${NGINX_SSL_DST_ALIAS} -srckeypass ${PASS} -destkeypass ${PASS} -noprompt
+#$KEYTOOL -importkeystore -srckeystore ${NGINX_SSL_KEYSTORE} -destkeystore ${NAMESERVER}.jks -srcstoretype pkcs12 -deststoretype JKS -srcstorepass ${PASS} -deststorepass ${NGINX_KEYSTORE_PASS} -srcalias ${NGINX_SSL_SRC_ALIAS} -destalias ${NGINX_SSL_DST_ALIAS} -srckeypass ${PASS} -destkeypass ${PASS} -noprompt
 
 # Extraer el certificado del keystore
-$KEYTOOL -exportcert -keystore ${NAMESERVER}.jks -storepass ${NGINX_KEYSTORE_PASS} -alias ${NGINX_SSL_DST_ALIAS} -rfc -file ${NAMESERVER}.crt
+#$KEYTOOL -exportcert -keystore ${NAMESERVER}.jks -storepass ${NGINX_KEYSTORE_PASS} -alias ${NGINX_SSL_DST_ALIAS} -rfc -file ${NAMESERVER}.crt
 
 # Extraer la clave privada del keystore
-openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${NAMESERVER}.key -passin pass:${PASS}
+# openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${NAMESERVER}.key -passin pass:${PASS}
 
 # # Cambiar el cifrado a AES256
 #openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -out ${NAMESERVER}.p12 -nodes -passin pass:${PASS} -passout pass:${PASS}
@@ -118,7 +123,9 @@ openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${NAMESERVER}.key 
 # mv *.crt ${OPENSSL_CERTS_PATH}/
 # mv *.p12 ${OPENSSL_CERTS_PATH}/
 # mv *.cer ${OPENSSL_CERTS_PATH}/
-mv *.jks ${OPENSSL_CERTS_PATH}/
+# mv *.jks ${OPENSSL_CERTS_PATH}/
 # mv *.p12 ${OPENSSL_CERTS_PATH}/
-mv *.crt ${OPENSSL_CERTS_PATH}/
-mv *.key ${OPENSSL_CERTS_PATH}/
+# mv *.crt ${OPENSSL_CERTS_PATH}/
+# mv *.key ${OPENSSL_CERTS_PATH}/
+
+chmod 755 ${OPENSSL_CERTS_PATH}/*

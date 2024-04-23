@@ -28,7 +28,11 @@ echo ""
 export NAMECA=${NGINX_SSL_NAMECA}
 export NAMECLIENT=${NGINX_SSL_NAMECLIENT}
 export NAMESERVER=${NGINX_SSL_NAMESERVER}
-export PASS=${NGINX_SSL_PASS}   
+export PASS=${NGINX_KEYSTORE_PASS}
+export SSL_PASS=${NGINX_SSL_PASS}
+
+PWD=$(cat ${SSL_PASS})
+
 export OPENSSL_CONF=${NGINX_CONF_PATH}/${NGINX_OPENSSL_CONF_FILE}
 export OPENSSL_CERTS_PATH=${APP_FILES_BASE_FOLDER}/assets/ssl
 
@@ -44,63 +48,54 @@ echo "$COMMAND at $KEYTOOL"
 
 echo dname is ${DNAME}
 
-echo "generating genrsa"
-openssl genrsa -out ${NAMECA}ca.key -aes256 -passout pass:${PASS} 4096
-echo "generating req new using config ${OPENSSL_CONF}"
-openssl req -new -config ${OPENSSL_CONF} -x509 -key ${NAMECA}ca.key -days 3560 -sha256 -out ${NAMECA}ca.pem -passin pass:${PASS}
-echo "generating rsa"
-openssl rsa -in ${NAMECA}ca.key -out ${NAMECA}ca.key -passin pass:${PASS}
+rm ${OPENSSL_CERTS_PATH}/${NAMECA}*.*
+rm ${OPENSSL_CERTS_PATH}/${NAMESERVER}*.*
 
-echo "generating server key"
-openssl genrsa -out ${NAMESERVER}.key 4096 # -aes256 -passout pass:${PASS} 
-
-echo "generating server crt"
-openssl req -new -config ${OPENSSL_CONF} -key ${NAMESERVER}.key -out ${NAMESERVER}.csr -passin pass:${PASS}
-openssl x509 -req -CA ${NAMECA}ca.pem -CAkey ${NAMECA}ca.key -in ${NAMESERVER}.csr  -out ${NAMESERVER}.crt -days 1000 -CAcreateserial -passin pass:${PASS}
-
-# openssl pkcs12 -export -in ${NAMESERVER}.pem -inkey ${NAMESERVER}.key -out ${NAMESERVER}.p12 -name "${NAMESERVER}" -passin pass:${PASS} -passout pass:${PASS}
-
-# echo "generating jks"
-# $KEYTOOL -genkeypair -keyalg RSA -alias ${NAMESERVER} -keystore ${NAMESERVER}.jks -storepass ${PASS} -keypass ${PASS} -validity 1000 -dname "${DNAME}"
+# echo "generating server key"
+openssl genrsa -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key 4096
 
 # echo "generating server csr"
-# $KEYTOOL -certreq -v -alias ${NAMESERVER} -keystore ${NAMESERVER}.jks -storepass ${PASS} -file ${NAMESERVER}.csr
+openssl req -new -config ${OPENSSL_CONF} -key ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.csr
 
-# echo "generating server cer"
-# openssl x509 -req -CA ${NAMECA}ca.pem -CAkey ${NAMECA}ca.key -in ${NAMESERVER}.csr -out ${NAMESERVER}.cer -days 1000 -CAcreateserial -passin pass:${PASS}
+# echo "extracting pem and key from NGINX_SSL_KEYSTORE.p12"
 
-# echo "import server pem"
-# $KEYTOOL -import -keystore ${NAMESERVER}.jks -storepass ${PASS} -file ${NAMECA}ca.pem -alias ${NAMECA}rootca -noprompt
+openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -passin pass:${PWD}
+openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -passin pass:${PWD}
 
-# echo "import server cer"
-# $KEYTOOL -import -keystore ${NAMESERVER}.jks -storepass ${PASS} -file ${NAMESERVER}.cer -alias ${NAMESERVER}
+# echo "generating server crt"
+openssl x509 -req -CA ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -CAkey ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}.csr  -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -days 1000 -CAcreateserial
 
-# echo "import keystore server"
-# $KEYTOOL -importkeystore -srckeystore ${NAMESERVER}.jks -destkeystore ${NAMESERVER}_RC2-40-CBC.p12 -srcstoretype JKS -deststoretype PKCS12 -srcstorepass ${PASS} -deststorepass ${PASS} -srcalias ${NAMESERVER} -destalias ${NAMESERVER} -srckeypass ${PASS} -destkeypass ${PASS} -noprompt
+# echo "generating server pem"
+echo "generating server pem"
+openssl x509 -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -inform PEM -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.pem -outform PEM
+cat ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key >> ${OPENSSL_CERTS_PATH}/${NAMESERVER}.pem
 
-# # Cambiar el cifrado a AES256
-# openssl pkcs12 -in ${NAMESERVER}_RC2-40-CBC.p12 -out ${NAMESERVER}.p12 -nodes -aes256 -passin pass:${PASS} -passout pass:${PASS}
+echo "generating jks"
+$KEYTOOL -genkeypair -alias ${NAMESERVER} -keyalg RSA -keysize 4096 -dname "${DNAME}" -validity 1000 -keypass ${PASS} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -storetype JKS -noprompt
 
-# # Extraer el certificado
-# openssl pkcs12 -in ${NAMESERVER}.p12 -nokeys -out ${NAMESERVER}.crt -passin pass:${PASS}
+echo "generating server store csr"
+$KEYTOOL -certreq -v -alias ${NAMESERVER} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr
 
-# # Extraer la clave privada
-# openssl pkcs12 -in ${NAMESERVER}.p12 -nocerts -nodes -out ${NAMESERVER}.key -passin pass:${PASS}
+echo "generating server cer"
+openssl x509 -req -CA ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -CAkey ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -days 1000 -CAcreateserial -passin pass:${PASS}
+
+
+$KEYTOOL -import -trustcacerts -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
+
+echo "import server cer"
+$KEYTOOL -import -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
+
 
 echo "importing crt and authority to emiserv.jks"
-$KEYTOOL -import -alias ${NAMECA} -file ${NAMECA}ca.pem -keystore emiserv.jks -storepass ${PASS} -noprompt
-$KEYTOOL -import -alias ${NAMESERVER} -file ${NAMESERVER}.crt -keystore emiserv.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
 
 echo "import trustcacerts"
-$KEYTOOL -import -trustcacerts -alias ${NAMECA} -file ${NAMECA}ca.pem -keystore ${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
-$KEYTOOL -import -trustcacerts -alias ${NAMESERVER} -file ${NAMESERVER}.crt -keystore ${NAMECLIENT}trust.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -trustcacerts -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -trustcacerts -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMECLIENT}trust.jks -storepass ${PASS} -noprompt
 
-mv *.key ${OPENSSL_CERTS_PATH}/
-mv *.pem ${OPENSSL_CERTS_PATH}/
-mv *.csr ${OPENSSL_CERTS_PATH}/
-mv *.crt ${OPENSSL_CERTS_PATH}/
-mv *.jks ${OPENSSL_CERTS_PATH}/
-chmod 644 ${OPENSSL_CERTS_PATH}/*
-# mv *.p12 ${OPENSSL_CERTS_PATH}/
-# mv *.cer ${OPENSSL_CERTS_PATH}/
-# mv *.jks ${OPENSSL_CERTS_PATH}/
+
+
+
+
+chmod 755 ${OPENSSL_CERTS_PATH}/*
