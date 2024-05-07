@@ -48,53 +48,58 @@ echo "$COMMAND at $KEYTOOL"
 
 echo dname is ${DNAME}
 
+touch ${OPENSSL_CERTS_PATH}/${NAMECA}.txt
+touch ${OPENSSL_CERTS_PATH}/${NAMESERVER}.txt
+
 rm ${OPENSSL_CERTS_PATH}/${NAMECA}*.*
 rm ${OPENSSL_CERTS_PATH}/${NAMESERVER}*.*
 
-# echo "generating server key"
+echo "generating server key"
 openssl genrsa -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key 4096
 
-# echo "generating server csr"
+echo "generating server csr"
 openssl req -new -config ${OPENSSL_CONF} -key ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.csr
 
-# echo "extracting pem and key from NGINX_SSL_KEYSTORE.p12"
+echo "extracting pem and key from NGINX_SSL_KEYSTORE.p12"
 
 openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -passin pass:${PWD}
 openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -passin pass:${PWD}
 
-# echo "generating server crt"
+echo "generating server crt"
 openssl x509 -req -CA ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -CAkey ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}.csr  -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -days 1000 -CAcreateserial
 
-# echo "generating server pem"
 echo "generating server pem"
 openssl x509 -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -inform PEM -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}.pem -outform PEM
 cat ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key >> ${OPENSSL_CERTS_PATH}/${NAMESERVER}.pem
 
+
 echo "generating jks"
 $KEYTOOL -genkeypair -alias ${NAMESERVER} -keyalg RSA -keysize 4096 -dname "${DNAME}" -validity 1000 -keypass ${PASS} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -storetype JKS -noprompt
 
-echo "generating server store csr"
-$KEYTOOL -certreq -v -alias ${NAMESERVER} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr
+# echo "generating server store csr"
+# $KEYTOOL -certreq -v -alias ${NAMESERVER} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr
 
-echo "generating server cer"
-openssl x509 -req -CA ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -CAkey ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -days 1000 -CAcreateserial -passin pass:${PASS}
-
-
-$KEYTOOL -import -trustcacerts -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
-
-echo "import server cer"
-$KEYTOOL -import -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
+# echo "generating server cer"
+# openssl x509 -req -CA ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -CAkey ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -in ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr -out ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -days 1000 -CAcreateserial -passin pass:${PASS}
 
 
-echo "importing crt and authority to emiserv.jks"
-$KEYTOOL -import -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
-$KEYTOOL -import -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
+chmod 755 ${OPENSSL_CERTS_PATH}/*
+
+
+
+#$KEYTOOL -import -trustcacerts -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
+
+#echo "import server cer"
+#$KEYTOOL -import -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.cer -alias ${NAMESERVER}
+
+
+#echo "importing crt and authority to emiserv.jks"
+#$KEYTOOL -import -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
+#$KEYTOOL -import -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -noprompt
 
 echo "import trustcacerts"
-$KEYTOOL -import -trustcacerts -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
-$KEYTOOL -import -trustcacerts -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMECLIENT}trust.jks -storepass ${PASS} -noprompt
-
-
+#$KEYTOOL -import -trustcacerts -alias ${NAMECA} -file ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
+$KEYTOOL -import -trustcacerts -alias ${NAMESERVER} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}.crt -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}trust.jks -storepass ${PASS} -noprompt
 
 
 
