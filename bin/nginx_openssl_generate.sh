@@ -28,6 +28,7 @@ echo ""
 export NAMECA=${NGINX_SSL_NAMECA}
 export NAMECLIENT=${NGINX_SSL_NAMECLIENT}
 export NAMESERVER=${NGINX_SSL_NAMESERVER}
+export ALIAS=${NGINX_SSL_DST_ALIAS}
 export PASS=${NGINX_KEYSTORE_PASS}
 export SSL_PASS=${NGINX_SSL_PASS}
 
@@ -62,6 +63,8 @@ openssl req -new -config ${OPENSSL_CONF} -key ${OPENSSL_CERTS_PATH}/${NAMESERVER
 
 echo "extracting pem and key from NGINX_SSL_KEYSTORE.p12"
 
+
+
 openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.pem -passin pass:${PWD}
 openssl pkcs12 -in ${NGINX_SSL_KEYSTORE} -nocerts -nodes -out ${OPENSSL_CERTS_PATH}/${NAMECA}ca.key -passin pass:${PWD}
 
@@ -74,7 +77,7 @@ cat ${OPENSSL_CERTS_PATH}/${NAMESERVER}.key >> ${OPENSSL_CERTS_PATH}/${NAMESERVE
 
 
 echo "generating jks"
-$KEYTOOL -genkeypair -alias ${NAMESERVER} -keyalg RSA -keysize 4096 -dname "${DNAME}" -validity 1000 -keypass ${PASS} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -storetype JKS -noprompt
+$KEYTOOL -genkeypair -alias ${ALIAS} -keyalg RSA -keysize 4096 -dname "${DNAME}" -validity 1000 -keypass ${PASS} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -storetype JKS -noprompt
 
 # echo "generating server store csr"
 # $KEYTOOL -certreq -v -alias ${NAMESERVER} -keystore ${OPENSSL_CERTS_PATH}/${NAMESERVER}.jks -storepass ${PASS} -file ${OPENSSL_CERTS_PATH}/${NAMESERVER}keystore.csr
