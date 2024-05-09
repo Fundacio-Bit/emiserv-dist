@@ -1,0 +1,97 @@
+version: '3.2'
+name: emiservcedent
+services:
+  wildfly:
+    build:
+      context: ${DOCKER_PROJECT_PATH}/builds/wildfly-dist
+      args:
+        - KEYCLOAK_URI_ARG=${KEYCLOAK_URI_ARG}
+    container_name: wildfly-${APP_PROJECT_NAME}
+    hostname: wildfly-${APP_PROJECT_DOCKER_SERVER_NAME}
+    environment:
+     - ADMIN_USER=$WILDFLY_ADMIN_USER
+     - ADMIN_PASSWORD=$WILDFLY_ADMIN_PASS
+     - LONG_APP_NAME_LOWER=${LONG_APP_NAME_LOWER}
+     - SHORT_APP_NAME_LOWER=${SHORT_APP_NAME_LOWER}
+     - LONG_APP_NAME_UPPER=${LONG_APP_NAME_UPPER}
+     - SHORT_APP_NAME_UPPER=${SHORT_APP_NAME_UPPER}
+     - APP_DOMAIN_NAME=${APP_DOMAIN_NAME}
+     - APP_PACKAGE_NAME=${APP_PACKAGE_NAME}
+    ports:
+     - ${WILDFLY_PORT}:8080
+     - ${WILDFLY_ADMIN_PORT}:9990
+    volumes:
+     - ${WILDFLY_DEPLOY_DIR}:/opt/jboss/wildfly/standalone/deployments
+     #- ${WILDFLY_LIB_DIR}/backoffice.jar:/opt/jboss/wildfly/standalone/lib/backoffice.jar:ro
+     - ${M2_REPO}/es/caib/emiserv/emiserv-service-intf/2.0.4/emiserv-service-intf-2.0.4.jar:/opt/jboss/wildfly/standalone/lib/emiserv-service-intf-2.0.4.jar:ro
+     - ${WILDFLY_CONFIG_DIR}:/opt/jboss/webapps/config
+     - ${APP_FILES_BASE_FOLDER}/assets:/app/${APP_PROJECT_NAME}/assets
+     - ${APP_FILES_BASE_FOLDER}/var:/app/${APP_PROJECT_NAME}/var
+     - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}trust.jks:/opt/jboss/wildfly/standalone/configuration/${NGINX_SSL_NAMESERVER}trust.jks:ro
+     - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}.jks:/opt/jboss/wildfly/standalone/configuration/${NGINX_SSL_NAMESERVER}.jks:ro
+    depends_on:
+      #- keycloak
+      - app-db
+  # keycloak:
+  #   build:
+  #     context: ${DOCKER_PROJECT_PATH}/builds/keycloak-dist
+  #   container_name: keycloak-${APP_PROJECT_NAME}
+  #   hostname: keycloak-${APP_PROJECT_DOCKER_SERVER_NAME}
+  #   environment:
+  #    - KEYCLOAK_USER=$KEYCLOAK_ADMIN_USER
+  #    - KEYCLOAK_PASSWORD=$KEYCLOAK_ADMIN_PASS
+  #    - KEYCLOAK_IMPORT=/tmp/import-goib-realm.json
+  #   ports:
+  #    - ${KEYCLOAK_PORT}:8180
+  #   volumes: 
+  #     - ${DOCKER_PROJECT_PATH}/builds/keycloak-dist/keycloak/conf/import-goib-realm.json:/tmp/import-goib-realm.json
+  #     - ${KEYCLOAK_HTTPS_KEYSTORE_PATH}:/opt/jboss/keycloak/standalone/configuration/keystores
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://keycloak-${APP_PROJECT_DOCKER_SERVER_NAME}:8180/auth/realms/GOIB"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 5
+  app-db:
+    image: postgres:15.2-alpine
+    #build:
+    #  context: ${DOCKER_PROJECT_PATH}/builds/postgresql-dist
+    #build:
+    #  context: ${DOCKER_PROJECT_PATH}/builds/postgresql-dist
+    container_name: ${APP_PROJECT_NAME}-pg
+    hostname: ${APP_PROJECT_DOCKER_SERVER_NAME}-pg
+    #restart: always
+    ports:
+      - ${PG_PORT}:5432
+    volumes:
+      - ${DOCKER_PROJECT_PATH}/builds/postgresql-dist/postgresql/bin/docker-entrypoint-initdb.d/00_initdb.sh:/docker-entrypoint-initdb.d/00_initdb.sh:ro
+      - ${APP_FILES_BASE_FOLDER}/postgresql/15.2-alpine/data:/var/lib/postgresql/data
+      - ${APP_FILES_BASE_FOLDER}/postgresql/15.2-alpine/backups:/app/postgresql/backups
+      #- ${DOCKER_PROJECT_PATH}/builds/postgresql-dist/postgresql/tablespaces/${LONG_APP_NAME_LOWER}:/var/lib/postgresql/app/tablespaces
+      #- ${DOCKER_PROJECT_PATH}/builds/postgresql-dist/postgresql/backups/${LONG_APP_NAME_LOWER}:/var/lib/postgresql/app/backups
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - LONG_APP_NAME=${APP_PROJECT_DB_NAME}
+      - SHORT_APP_NAME=${SHORT_APP_NAME_LOWER}
+      - PGTABLESPACES=/var/lib/postgresql/data/tablespaces
+      - LANG=es_ES.UTF-8
+      - LANGUAGE=es_ES:es
+      - LC_ALL=es_ES.UTF-8
+  # nginx:
+  #   image: nginx
+  #   container_name: nginx-${APP_PROJECT_NAME}
+  #   hostname: nginx-${APP_PROJECT_DOCKER_SERVER_NAME}
+  #   #restart: always
+  #   ports:
+  #     - ${NGINX_SERVER_HTTP_PORT}:80
+  #     - ${NGINX_SERVER_HTTPS_PORT}:443
+  #   volumes:
+  #     - ${DOCKER_PROJECT_PATH}/builds/nginx-dist/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ${DOCKER_PROJECT_PATH}/builds/nginx-dist/nginx/bin/docker-entrypoint.d/nginx-entrypoint.sh:/docker-entrypoint.d/nginx-entrypoint.sh:ro
+  #     - ${APP_FILES_BASE_FOLDER}/assets:/app/${APP_PROJECT_NAME}/assets
+  #   depends_on:
+  #     - wildfly
+  #     #- keycloak
+  #     - app-db
+
+
+    
