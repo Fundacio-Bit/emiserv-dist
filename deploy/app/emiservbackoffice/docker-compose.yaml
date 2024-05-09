@@ -27,6 +27,9 @@ services:
      - ${WILDFLY_CONFIG_DIR}:/opt/jboss/webapps/config
      - ${APP_FILES_BASE_FOLDER}/assets:/app/${APP_PROJECT_NAME}/assets
      - ${APP_FILES_BASE_FOLDER}/var:/app/${APP_PROJECT_NAME}/var
+     - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}.jks:/opt/jboss/wildfly/standalone/configuration/${NGINX_SSL_NAMESERVER}.jks:ro
+     - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}trust.jks:/opt/jboss/wildfly/standalone/configuration/${NGINX_SSL_NAMESERVER}trust.jks:ro
+  
     depends_on:
       #- keycloak
       - app-db
