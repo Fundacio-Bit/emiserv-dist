@@ -9,6 +9,9 @@ services:
     environment:
      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USER}
      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASS}
+     - KC_LOG=console,file
+     - KC_LOG_FILE=/app/keycloak/var/log/keycloak.log
+     - KC_LOGLEVEL=${KEYCLOAK_LOG_LEVEL}
      - KC_DB=${KEYCLOAK_DB}
      - KC_DB_URL_HOST=${KEYCLOAK_DB_URL_HOST}
      - KC_DB_URL_PORT=${KEYCLOAK_DB_URL_PORT}
@@ -20,13 +23,13 @@ services:
      - KC_HEALTH_ENABLED=${KEYCLOAK_HEALTH_ENABLED}
      - KC_HTTPS_CERTIFICATE_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_FILE}
      - KC_HTTPS_CERTIFICATE_KEY_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE}
-     - KC_PROXY=${KEYCLOAK_PROXY}
-     - KC_HOSTNAME_STRICT=${KEYCLOAK_HOSTNAME_STRICT}
-     - KC_HOSTNAME_STRICT_HTTPS=${KEYCLOAK_HOSTNAME_STRICT_HTTPS}
-     - KC_PROXY_HEADERS=${KEYCLOAK_PROXY_HEADERS}
+     #- KC_PROXY=${KEYCLOAK_PROXY}
+     #- KC_HOSTNAME_STRICT=${KEYCLOAK_HOSTNAME_STRICT}
+     #- KC_HOSTNAME_STRICT_HTTPS=${KEYCLOAK_HOSTNAME_STRICT_HTTPS}
+     #- KC_PROXY_HEADERS=${KEYCLOAK_PROXY_HEADERS}
     ports:
-     - ${KEYCLOAK_PORT}:8080
-     - ${KEYCLOAK_HTTPS_PORT}:8443
+      - ${KEYCLOAK_PORT}:8180
+      - ${KEYCLOAK_HTTPS_PORT}:8543
   # keycloak:
   #   #image: keycloak/keycloak:18.0
   #   build:
@@ -43,6 +46,7 @@ services:
     volumes: 
       - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}.crt:${KEYCLOAK_HTTPS_CERTIFICATE_FILE}:ro
       - ${APP_FILES_BASE_FOLDER}/../../../main/1.0.0/data/assets/ssl/${NGINX_SSL_NAMESERVER}.key:${KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE}:ro
+      - ${APP_FILES_BASE_FOLDER}/var/keycloak/log:/app/keycloak/var/log
     healthcheck:
       test: ["CMD", "curl", "-f", "https://${KEYCLOAK_SERVER_BASE_URL}/health"]
       interval: 10s
